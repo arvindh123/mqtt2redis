@@ -2,11 +2,12 @@
  [{description, "Mqtt Plguin to persist data into PostgreSQL"},
   {vsn, "git"},
   {modules, []},
-  {registered, []},
+  {registered, [mqtt2redis_sup]},
   {mod, {mqtt2redis_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    eredis
    ]},
   {env,[]},
   {licenses, ["Apache 2.0"]},
