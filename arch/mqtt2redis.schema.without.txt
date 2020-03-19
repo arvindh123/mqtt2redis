@@ -1,0 +1,72 @@
+%%-*- mode: erlang -*-
+%% mqtt2redis config mapping
+
+{mapping, "mqtt2redis.$id.$field.$sid.$param", "mqtt2redis.db", [
+  {datatype, string}
+]}.
+
+{translation, "mqtt2redis.db", fun(Conf) ->
+  AllParams = cuttlefish_variable:filter_by_prefix("mqtt2redis", Conf),
+
+  FId = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2redis", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Id | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+
+  FFld = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2redis", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Field | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+  
+
+  lists:map(
+    fun(VId) ->
+
+        lists:map(
+          fun(VFld) ->
+            
+
+            VFldParams = cuttlefish_variable:filter_by_prefix("mqtt2redis." ++ VId ++ "." ++ VFld, Conf),
+            
+            SubParamSet = sets:to_list(sets:from_list(lists:foldl(
+                            fun({["mqtt2redis", Id, Field, Sid, Param], Values}, AccIn) ->
+                              [ Sid | AccIn];
+                            (_, AccIn) ->
+                              AccIn
+                            end, [], VFldParams))),
+            { 
+              list_to_atom(VFld) , 
+
+              lists:map(
+                
+                fun(SubParam) -> 
+                  lists:map(
+                    fun({["mqtt2redis",Id,Field,Sid,Param], Value}) -> 
+                      {list_to_atom(Param) , Value}
+                    end,
+                    cuttlefish_variable:filter_by_prefix("mqtt2redis." ++ VId ++ "." ++ VFld ++ "." ++ SubParam, Conf)
+                  )
+
+                end,
+                SubParamSet
+              )
+            } 
+            
+          end,
+          FFld
+        ) 
+
+    end,
+    FId
+  ) 
+
+end}.
+
+
+
+
+  

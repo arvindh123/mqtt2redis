@@ -1,0 +1,123 @@
+%%-*- mode: erlang -*-
+%% mqtt2redis config mapping
+
+{mapping, "mqtt2redis.$id.$field.$sid.$param", "mqtt2redis.db", [
+  {datatype, string}
+]}.
+
+{translation, "mqtt2redis.db", fun(Conf) ->
+  AllParams = cuttlefish_variable:filter_by_prefix("mqtt2redis", Conf),
+
+  FId = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2redis", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Id | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+
+  FFld = sets:to_list(sets:from_list(lists:foldl(
+       fun({["mqtt2redis", Id, Field, Sid, Param], Values}, AccIn) ->
+        [ Field | AccIn];
+       (_, AccIn) ->
+        AccIn
+       end, [], AllParams))),
+  
+                    lists:map(
+                      fun(VId) ->
+
+                          lists:map(
+                            fun(VFld) ->
+                              
+
+                              VFldParams = cuttlefish_variable:filter_by_prefix("mqtt2redis." ++ VId ++ "." ++ VFld, Conf),
+                              
+                              SubParamSet = sets:to_list(sets:from_list(lists:foldl(
+                                              fun({["mqtt2redis", Id, Field, Sid, Param], Values}, AccIn) ->
+                                                [ Sid | AccIn];
+                                              (_, AccIn) ->
+                                                AccIn
+                                              end, [], VFldParams))),
+                              { 
+                                list_to_atom(VFld) , 
+
+                                lists:map(
+                                  
+                                  fun(SubParam) -> 
+                                    lists:map(
+                                      fun({["mqtt2redis",Id,Field,Sid,Param], Value}) -> 
+                                        {list_to_atom(Param) , Value}
+                                      end,
+                                      cuttlefish_variable:filter_by_prefix("mqtt2redis." ++ VId ++ "." ++ VFld ++ "." ++ SubParam, Conf)
+                                    )
+
+                                  end,
+                                  SubParamSet
+                                )
+                              } 
+                              
+                            end,
+                            FFld
+                          ) 
+
+                      end,
+                      FId
+                    ) 
+                  
+
+end}.
+
+{mapping, "mqtt2redis.host", "mqtt2redis.host", [
+  {datatype, string}
+]}.
+
+
+
+{mapping, "mqtt2redis.port", "mqtt2redis.port", [
+  {datatype, integer}
+]}.
+
+
+{mapping, "mqtt2redis.username", "mqtt2redis.username", [
+  {datatype, string}
+]}.
+
+
+{mapping, "mqtt2redis.password", "mqtt2redis.password", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2redis.dbname", "mqtt2redis.dbname", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2redis.schemacount", "mqtt2redis.schemacount", [
+  {datatype, integer}
+]}.
+
+{mapping, "mqtt2redis.tablecount", "mqtt2redis.tablecount", [
+  {datatype, integer}
+]}.
+
+
+{mapping, "mqtt2redis.noofcon", "mqtt2redis.noofcon", [
+  {datatype, integer}
+]}.
+
+{translation, "mqtt2redis.noofcon", fun(Conf) ->
+
+  lists:map(
+    fun(Number) ->
+      list_to_atom(lists:concat(["connection_", lists:flatten(io_lib:format("~p", [Number]))]))
+    end,  
+    lists:seq(1,cuttlefish:conf_get("mqtt2redis.noofcon", Conf)) 
+  )
+end}.
+
+
+{mapping, "mqtt2redis.tablepre", "mqtt2redis.tablepre", [
+  {datatype, string}
+]}.
+
+{mapping, "mqtt2redis.tablepost", "mqtt2redis.tablepost", [
+  {datatype, string}
+]}.
